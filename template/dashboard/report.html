@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% block content %}
+<script src="https://www.jsdelivr.com/package/npm/chart.js?path=dist"></script>
+<script>
+    function clear_table() {
+        table_rows = document.getElementsByClassName('transaction_row')
+        for (let i = 0; i < table_rows.length; i++) {
+            const table_element = table_rows[i];
+            table_element.style.visibility = 'collapse'
+        }
+    }
+    function clear_category() {
+        elements = document.getElementsByClassName('category_check')
+        for (let i = 0; i < elements.length; i++) {
+            const check_element = elements[i];
+            check_element.checked = false
+        }
+    }
+    function category_check_onchange() {
+        account_elements = document.getElementsByClassName('account_check')
+        for (let i = 0; i < account_elements.length; i++) {
+            const element = account_elements[i];
+            if (element.checked) {
+                account_check_onchange()
+                return
+            }
+        }
+        elements = document.getElementsByClassName('category_check')
+        table_rows = document.getElementsByClassName('transaction_row')
+        clear_table()
+        var count = 0;
+        for (let j = 0; j < elements.length; j++) {
+            const check_element = elements[j];
+            if (check_element.checked) {
+                count += 1
+                for (let i = 0; i < table_rows.length; i++) {
+                    const table_element = table_rows[i];
+                    if (table_element.getElementsByTagName('td')[3].innerHTML == check_element.getAttribute("hiddenvalue")) {
+                        table_element.style.visibility = 'visible'
+                    }
+                }
+            }
+        }
+        if (count == 0) {
+            for (let i = 0; i < table_rows.length; i++) {
+                const table_element = table_rows[i];
+                table_element.style.visibility = 'visible'
+            }
+        }
+    }
+
+    function account_check_onchange() {
+        account_elements = document.getElementsByClassName('account_check')
+        table_rows = document.getElementsByClassName('transaction_row')
+        var count = 0;
+        clear_table()
+        for (let j = 0; j < account_elements.length; j++) {
+            const account_element = account_elements[j];
+            if (account_element.checked) {
+                count += 1
+                for (let i = 0; i < table_rows.length; i++) {
+                    const table_element = table_rows[i];
+                    if (table_element.getElementsByTagName('td')[4].innerHTML == account_element.getAttribute("hiddenvalue")) {
+                        table_element.style.visibility = 'visible'
+                    }
+                }
+            }
+        }
+        category_count = 0
+        elements = document.getElementsByClassName('category_check')
+        for (let j = 0; j < elements.length; j++) {
+            const check_element = elements[j];
+            if (check_element.checked) {
+                category_count += 1
+                for (let i = 0; i < table_rows.length; i++) {
+                    const table_element = table_rows[i];
+                    if (table_element.getElementsByTagName('td')[3].innerHTML != check_element.getAttribute("hiddenvalue") && table_element.style.visibility == 'visible') {
+                        table_element.style.visibility = 'collapse'
+                    }
+                }
+            }
+        }
+        if (count == 0) {
+            for (let i = 0; i < table_rows.length; i++) {
+                const table_element = table_rows[i];
+                table_element.style.visibility = 'visible'
+            }
+        }
+    }
+    function datechanged() {
+        startdate = document.getElementById('startDate')
+        enddate = document.getElementById('endDate')
+        startdate_value = new Date(startdate.value)
+        enddate_value = new Date(enddate.value)
+        if (startdate_value > enddate_value) {
+            enddate.value = startdate.value
+        }
+        startdate_value.setHours(0)
+        startdate_value.setMinutes(0)
+        startdate_value.setSeconds(0)
+        enddate_value.setHours(0)
+        enddate_value.setMinutes(0)
+        enddate_value.setSeconds(0)
+        elements = document.getElementsByClassName('account_check')
+        table_rows = document.getElementsByClassName('transaction_row')
+        for (let i = 0; i < table_rows.length; i++) {
+            const table_element = table_rows[i];
+            table_element.style.visibility = 'collapse'
+        }
+        for (let i = 0; i < table_rows.length; i++) {
+            const table_element = table_rows[i];
+            current_element_date = table_element.getElementsByTagName('td')[0].innerHTML.split('-')
+            current_element_date_value = new Date()
+            current_element_date_value.setHours(0)
+            current_element_date_value.setMinutes(0)
+            current_element_date_value.setSeconds(0)
+            current_element_date_value.setDate(parseInt(current_element_date[0]))
+            current_element_date_value.setMonth(parseInt(current_element_date[1]) - 1)
+            current_element_date_value.setYear(parseInt(current_element_date[2]))
+            if (current_element_date_value >= startdate_value && current_element_date_value <= enddate_value) {
+                table_element.style.visibility = 'visible'
+            }
+        }
+    }
+</script>
+<div style="margin: 3vh;">
+    <div>
+        <label>Account:</label>
+        {% for account_element in account %}
+        <div class="form-check form-check-inline">
+            <input class="form-check-input account_check" type="checkbox" hiddenvalue="{{account_element.name}}"
+                onchange="account_check_onchange()">
+            <label class="form-check-label">
+                {{account_element.name}}
+            </label>
+        </div>
+        {% endfor %}<br>
+        <label>Income:</label>
+        {% for category_element in category_income %}
+        <div class="form-check form-check-inline">
+            <input class="form-check-input category_check" hiddenvalue="{{category_element.name}}" type="checkbox"
+                onchange="category_check_onchange()">
+            <label class="form-check-label">
+                {{category_element.name}}
+            </label>
+        </div>
+        {% endfor %}<br>
+        <label>Expense:</label>
+        {% for category_element in category_expense %}
+        <div class="form-check form-check-inline">
+            <input class="form-check-input category_check" hiddenvalue="{{category_element.name}}" type="checkbox"
+                onchange="category_check_onchange()">
+            <label class="form-check-label">
+                {{category_element.name}}
+            </label>
+        </div>
+        {% endfor %}
+    </div><br>
+    <label>Time Filter</label>
+    <label>From: </label><input id="startDate" class="form-control" type="date" style="width: max-content;"
+        onchange="datechanged()" value="{{today_date}}" />
+    <label>To: </label><input id="endDate" class="form-control" type="date" style="width: max-content;"
+        onchange="datechanged()" value="{{today_date}}" /><br>
+        <label>Account Details :-</label><br>
+    <div style="overflow-y: scroll;overflow-x: scroll;max-height: 30vh;">
+        <table class="table">
+            <thead style="position: sticky;top: 0" class="table-secondary">
+                <tr>
+                    <th scope="col">Account</th>
+                    <th scope="col">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for current_account in account %}
+                <tr>
+                    <td>{{current_account.name}}</td>
+                    <td>{{current_account.balance}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div><br>
+    <label>Transaction Details :-</label><br>
+    <div style="overflow-y: scroll;overflow-x: scroll;max-height: 60vh;">
+        <table class="table">
+            <thead style="position: sticky;top: 0" class="table-secondary">
+                <tr>
+                    <th scope="col">Sl.no</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Account</th>
+                    <th scope="col">Transaction Type</th>
+                    <th scope="col">Balance</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr
+                    class='transaction_row {% if transaction.type == "Income" %}text-success{% else %}text-danger{% endif %}'>
+                    <th scope="row">{{forloop.counter}}</th>
+                    <td>{{transaction.date}}</td>
+                    <td>{{transaction.description}}</td>
+                    <td>{{transaction.amount}}</td>
+                    <td>{{transaction.category}}</td>
+                    <td>{{transaction.account}}</td>
+                    <td>{{transaction.type}}</td>
+                    <td>{{transaction.balance}}</td>
+                    <td>
+                        <a href="{% url 'dashboard:transaction_control' transaction.id %}"><button type="button"
+                                class="btn btn-danger">Delete</button></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

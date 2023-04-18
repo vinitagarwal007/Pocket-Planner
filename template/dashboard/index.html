@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+  function transactiontype(type) {
+    document.getElementsByClassName('transaction_details')[0].style.display = "block"
+    if (type) {
+      document.getElementById("category-income").style.display = "block"
+      document.getElementById("category-expense").style.display = "none"
+      document.getElementById('type_form').value = 'income'
+      document.getElementById('type_label').innerText = 'Transaction Selected: Income'
+    } else {
+      document.getElementById("category-expense").style.display = "block"
+      document.getElementById("category-income").style.display = "none"
+      document.getElementById('type_form').value = 'expense'
+      document.getElementById('type_label').innerText = 'Transaction Selected: Expense'
+    }
+
+    const exampleModal = document.getElementById('exampleModal')
+    if (exampleModal) {
+      exampleModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget
+        const recipient = button.getAttribute('data-bs-whatever')
+        const modalTitle = exampleModal.querySelector('.modal-title')
+        const modalBodyInput = exampleModal.querySelector("#add-type")
+        const modalBodyInput_iscredit = exampleModal.querySelector("#add-type-iscredit")
+
+        modalTitle.textContent = `New ${recipient}`
+        modalBodyInput.value = recipient
+        if(type){
+          modalBodyInput_iscredit.value='true'
+        }else{
+          modalBodyInput_iscredit.value='false'
+        }
+      })
+    }
+  }
+</script>
+<style>
+  .transaction_details {
+    display: none;
+  }
+</style>
+<div class="card m-3">
+  <div class="card-body">
+    <div class="my-3 text-center">
+      <p class="fw-bold">Select Transaction Type</p>
+      <button class="btn btn-success" name="income" onclick="transactiontype(true)">Income</button>
+      <button class="btn btn-danger" name="expense" onclick="transactiontype(false)">Expense</button>
+    </div>
+  </div>
+</div>
+<div class="transaction_details text-center card m-3">
+  <div class="card-body mx-auto">
+    <p class="fw-bold">Please Enter Transaction Details</p>
+    <p>*Select Account :-</p>
+    <form method="POST" action="">
+      {% csrf_token %}
+      {% for account_element in account %}
+      <div class="form-check form-check-inline">
+        <input class="account form-check-input" type="radio" name="account" value="{{account_element.id}}">
+        <label class="form-check-label">
+          {{account_element.name}}
+        </label>
+      </div>
+      {% endfor %}
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
+        data-bs-whatever="Account">New</button>
+      <p>*Select Category :-</p>
+      <div id="category-income" class="text-center" style="display:none;">
+        {% for category_element in category_income %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" value="{{category_element.id}}">
+          <label class="form-check-label">
+            {{category_element.name}}
+          </label>
+        </div>
+        {% endfor %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
+          data-bs-whatever="Category">New</button>
+      </div>
+      <div id="category-expense" class="text-center" style="display: none;">
+        {% for category_element in category_expense %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="category" value="{{category_element.id}}">
+          <label class="form-check-label">
+            {{category_element.name}}
+          </label>
+        </div>
+        {% endfor %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal"
+        data-bs-whatever="Category">New</button>
+      </div>
+      <br>
+      <input type="text" class="form-control my-1" placeholder="Enter Description" name="description">
+      <input type="number" min="0" class="form-control my-1" placeholder="Enter Amount" name="amount" value=0>
+      <input type="hidden" name="type" value="income" id="type_form">
+      <label id="type_label"></label><br>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+  </div>
+</div>
+
+<!-- popup -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'dashboard:user_control' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Name:</label>
+            <input type="text" name="name" class="form-control" id="message-text"></input>
+          </div>
+          <input type="hidden" name="type" id="add-type">
+          <input type="hidden" name="type-iscredit" id="add-type-iscredit">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}
